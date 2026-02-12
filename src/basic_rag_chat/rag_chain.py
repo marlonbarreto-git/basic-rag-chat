@@ -4,31 +4,47 @@ from dataclasses import dataclass, field
 
 from openai import AsyncOpenAI
 
-from basic_rag_chat.vector_store import SearchResult, VectorStore
+from basic_rag_chat.vector_store import DEFAULT_TOP_K, SearchResult, VectorStore
+
+DEFAULT_MODEL: str = "gpt-4o-mini"
+DEFAULT_TEMPERATURE: float = 0.3
+DEFAULT_MAX_TOKENS: int = 1024
 
 
 @dataclass
 class RAGResponse:
+    """Container for a RAG-generated answer and its metadata."""
+
     answer: str
     sources: list[SearchResult] = field(default_factory=list)
-    input_tokens: int = 0
-    output_tokens: int = 0
+    input_tokens: int = 0  # prompt tokens consumed by the LLM call
+    output_tokens: int = 0  # completion tokens produced by the LLM call
 
 
 class RAGChain:
+    """Orchestrates retrieval from a VectorStore and generation via OpenAI."""
+
     def __init__(
         self,
         vector_store: VectorStore,
         openai_api_key: str,
-        model: str = "gpt-4o-mini",
-        k: int = 3,
-    ):
+        model: str = DEFAULT_MODEL,
+        k: int = DEFAULT_TOP_K,
+    ) -> None:
         self._store = vector_store
         self._client = AsyncOpenAI(api_key=openai_api_key)
         self._model = model
         self._k = k
 
     async def query(self, question: str) -> RAGResponse:
+        """Retrieve relevant chunks and generate an answer.
+
+        Args:
+            question: The user's natural-language question.
+
+        Returns:
+            RAGResponse with the generated answer, sources, and token usage.
+        """
         results = self._store.search(question, k=self._k)
 
         context = self._build_context(results)
@@ -40,8 +56,8 @@ class RAGChain:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question},
             ],
-            temperature=0.3,
-            max_tokens=1024,
+            temperature=DEFAULT_TEMPERATURE,
+            max_tokens=DEFAULT_MAX_TOKENS,
         )
 
         return RAGResponse(
