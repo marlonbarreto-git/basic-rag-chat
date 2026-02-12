@@ -2,6 +2,14 @@
 name = "basic-rag-chat"
 version = "0.1.0"
 description = "Chat with PDF documents using RAG. Upload PDFs, chunk, embed, and query with source citations."
+license = {text = "MIT"}
+authors = [{name = "Marlon Barreto", email = "mbarretot@hotmail.com"}]
+keywords = ["RAG", "LLM", "AI", "PDF"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+]
 requires-python = ">=3.11"
 dependencies = [
     "langchain>=0.3.0",
@@ -16,6 +24,11 @@ dependencies = [
     "pydantic>=2.10.0",
     "python-multipart>=0.0.18",
 ]
+
+[project.urls]
+Homepage = "https://github.com/marlonbarreto-git/basic-rag-chat"
+Repository = "https://github.com/marlonbarreto-git/basic-rag-chat"
+Issues = "https://github.com/marlonbarreto-git/basic-rag-chat/issues"
 
 [project.optional-dependencies]
 dev = [
