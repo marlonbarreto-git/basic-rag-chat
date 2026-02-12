@@ -1,74 +1,89 @@
-# basic-rag-chat
+# Basic RAG Chat
 
-Chat with PDF documents using Retrieval-Augmented Generation. Upload PDFs, chunk them, embed in ChromaDB, and query with source citations.
+Chat with documents using Retrieval-Augmented Generation with source citations.
 
-## Features
+## Overview
 
-- **PDF ingestion**: Load and chunk PDF documents with configurable strategies
-- **Vector search**: ChromaDB with cosine similarity for semantic retrieval
-- **Source citations**: Every answer includes the exact chunks used
-- **RAG chain**: Retrieval + LLM generation with context-aware prompts
-- **Configurable**: Chunk size, overlap, top-k results, LLM model
+Basic RAG Chat implements a complete RAG pipeline: chunk documents with configurable text splitting, store embeddings in ChromaDB, and answer questions using retrieved context with OpenAI. The system provides source citations for every answer, letting users verify information against the original documents.
 
 ## Architecture
 
 ```
-basic_rag_chat/
-├── document_processor.py  # Text chunking with RecursiveCharacterTextSplitter
-├── vector_store.py        # ChromaDB wrapper for embeddings and search
-└── rag_chain.py           # Retrieval + OpenAI generation with citations
+Documents (text)
+  |
+  v
+DocumentProcessor (RecursiveCharacterTextSplitter)
+  |
+  v
+Chunks (content + source + index)
+  |
+  v
+VectorStore (ChromaDB, cosine similarity)
+  |
+  v
+RAGChain.query(question)
+  |
+  +---> VectorStore.search(question, k=3)
+  |        |
+  |        v
+  |     Top-k chunks with similarity scores
+  |
+  +---> OpenAI Chat Completion (context + question)
+  |
+  v
+RAGResponse (answer + source citations + token usage)
 ```
 
-## How It Works
+## Features
 
-```
-PDF → Chunk (RecursiveCharacterTextSplitter)
-    → Embed (ChromaDB default embeddings)
-    → Store (ChromaDB)
+- Document chunking with configurable size and overlap
+- Vector storage and retrieval via ChromaDB with cosine similarity
+- Configurable top-k retrieval results
+- Context-grounded answers with source citations
+- Token usage tracking per query
+- Automatic system prompt construction with retrieved context
 
-Query → Search (cosine similarity, top-k)
-      → Build context from retrieved chunks
-      → LLM generates answer with citations
-      → Return answer + source references
-```
+## Tech Stack
+
+- Python 3.11+
+- LangChain Text Splitters
+- ChromaDB (vector store)
+- OpenAI SDK
+- FastAPI + Uvicorn
+- Pydantic
 
 ## Quick Start
 
 ```bash
-uv sync
-export OPENAI_API_KEY="sk-..."
-
-# Python usage
-from basic_rag_chat.document_processor import DocumentProcessor
-from basic_rag_chat.vector_store import VectorStore
-from basic_rag_chat.rag_chain import RAGChain
-
-# 1. Process document
-processor = DocumentProcessor(chunk_size=500, chunk_overlap=100)
-chunks = processor.chunk_text(pdf_text, source="document.pdf")
-
-# 2. Store embeddings
-store = VectorStore(collection_name="my_docs")
-store.add_chunks(chunks)
-
-# 3. Query
-chain = RAGChain(vector_store=store, openai_api_key="sk-...")
-response = await chain.query("What is this document about?")
-print(response.answer)
-print(response.sources)  # Source citations
+git clone https://github.com/marlonbarreto-git/basic-rag-chat.git
+cd basic-rag-chat
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+export OPENAI_API_KEY=your-key
+pytest
 ```
 
-## Development
+## Project Structure
+
+```
+src/basic_rag_chat/
+  __init__.py
+  document_processor.py  # Text chunking with RecursiveCharacterTextSplitter
+  vector_store.py        # ChromaDB wrapper for embedding storage and search
+  rag_chain.py           # Retrieval + generation pipeline with citations
+tests/
+  test_document_processor.py
+  test_vector_store.py
+  test_rag_chain.py
+```
+
+## Testing
 
 ```bash
-uv sync --all-extras
-uv run pytest tests/ -v
+pytest -v --cov=src/basic_rag_chat
 ```
 
-## Roadmap
-
-- **v2**: Conversation memory, multi-PDF support, RAGAS evaluation
-- **v3**: Hybrid search (semantic + keyword), reranking, streaming
+16 tests covering document chunking, vector store operations, and RAG chain query flow.
 
 ## License
 
