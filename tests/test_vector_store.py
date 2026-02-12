@@ -1,8 +1,6 @@
 """Tests for the vector store (ChromaDB wrapper)."""
 
-from unittest.mock import MagicMock, patch
 
-import pytest
 
 from basic_rag_chat.document_processor import Chunk
 from basic_rag_chat.vector_store import VectorStore, SearchResult

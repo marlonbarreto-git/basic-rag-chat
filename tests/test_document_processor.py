@@ -1,6 +1,5 @@
 """Tests for document processing (loading, chunking)."""
 
-import pytest
 
 from basic_rag_chat.document_processor import DocumentProcessor, Chunk
 
